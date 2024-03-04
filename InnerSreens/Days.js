@@ -24,14 +24,14 @@ const Days = ({route, navigation}) => {
   const [Edata, setEdata] = useState([]);
   const [value, setValue] = useState('1');
   const Dispatch=useDispatch()
-  useEffect(() => {
-    if (getAdCount % 3 == 0) {
-      setIsModalVisible(true);
-      Dispatch(setAdCount(0))
-    } else {
-      setIsModalVisible(false);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (getAdCount % 3 == 0) {
+  //     setIsModalVisible(true);
+  //     Dispatch(setAdCount(0))
+  //   } else {
+  //     setIsModalVisible(false);
+  //   }
+  // }, []);
   useEffect(() => {
     setEdata(getDayWiseExercise?.day_1?.exercises);
   }, []);
@@ -263,7 +263,7 @@ const Days = ({route, navigation}) => {
           />
         </View>
       )}
-      <AdModal />
+      {/* <AdModal /> */}
     </View>
   );
 };

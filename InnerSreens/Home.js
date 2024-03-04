@@ -16,38 +16,92 @@ import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-simple-toast';
 import axios from 'axios';
 import {
+  BannerAd,
+  BannerAdSize,
+  InterstitialAd,
+  TestIds,
+  useInterstitialAd,
+  AdEventType,
+  RewardedAd,
+  RewardedAdEventType,
+} from 'react-native-google-mobile-ads';
+
+import {
   setAdCount,
   setDayWiseExerise,
   setExerciseCount,
   setIsLogin,
 } from '../Redux/Actions';
+import Days from './Days';
 
 const Home = ({navigation}) => {
-  const Dispatch = useDispatch();
-  const {getUserData, getAdCount,getIsLogin} = useSelector(state => state);
-  const [WrokoutData, setWorkoutData] = useState([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const TIMEOUT = 60*1000;
-  const [isLoggedIn, setIsLoggedIn] = useState(getIsLogin);
-  useEffect(() => {
-    let timer;
-    if (isLoggedIn) {
-      timer = setTimeout(() => {
-        setIsLoggedIn(false);
-        navigation.navigate("Login")
-        Dispatch(setIsLogin(false))
-        Toast.show("You have been logged out!",Toast.LONG)
-      }, TIMEOUT);
-    }
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-    };
-  }, [isLoggedIn]);
   useEffect(() => {
     getWorkoutData();
+    initInterstitial();
+    initRewarded();
   }, []);
+  const [loaded, setLoaded] = useState(false);
+  const [adClosed, setAdClosed] = useState(false);
+  const Dispatch = useDispatch();
+  const {getUserData, getAdCount, getIsLogin} = useSelector(state => state);
+  const [WrokoutData, setWorkoutData] = useState([]);
+  const [isLoaded1, setIsLoaded] = useState(false);
+  const TIMEOUT = 60 * 1000;
+  const [isLoggedIn, setIsLoggedIn] = useState(getIsLogin);
+  const [getAdStatus, setAdStatus] = useState(false);
+  const [getRewardedAd, setRewardedAd] = useState();
+  const adUnitId = __DEV__
+    ? TestIds.ADAPTIVE_BANNER
+    : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyyyyyy';
+  //interStitial ad
+  const initInterstitial = async () => {
+    const interstitialAd = InterstitialAd.createForAdRequest(
+      TestIds.INTERSTITIAL,
+    );
+    interstitialAd.addAdEventListener(AdEventType.LOADED, () => {
+      setAdStatus(interstitialAd);
+      console.log('ad loaded');
+    });
+    interstitialAd.addAdEventListener(AdEventType.CLOSED, () => {
+      interstitialAd.load();
+    });
+    interstitialAd.addAdEventListener(AdEventType.CLICKED, () => {
+      console.log('ad clicked');
+    });
+    interstitialAd.load();
+  };
+
+  const showInterstitialAd = async () => {
+    if (getAdStatus?._loaded) {
+      getAdStatus.show();
+      //it will navigate to the next screen while showing the ads
+      navigation.navigate('Days');
+    } else {
+      navigation.navigate('Days');
+    }
+  };
+  // rewarded ad
+  const initRewarded = async () => {
+    const rewardedAd = RewardedAd.createForAdRequest(TestIds.REWARDED);
+    rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
+      setRewardedAd(rewardedAd);
+      console.log(rewardedAd);
+    });
+    rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+      console.log('Earned reward');
+      rewardedAd.load();
+    });
+    rewardedAd.load();
+  };
+  const showRewardedAd = async () => {
+    if (getRewardedAd?._loaded) {
+      getRewardedAd.show();
+      //it will navigate to the next screen while showing the ads
+      navigation.navigate('Days');
+    } else {
+      navigation.navigate('Days');
+    }
+  };
   const getWorkoutData = async () => {
     try {
       const res = await axios(
@@ -81,60 +135,63 @@ const Home = ({navigation}) => {
   };
 
   return (
-    <View style={styles.Container}>
-      <View
-        style={{
-          marginTop: 80,
-          justifyContent: 'space-between',
-        }}>
-        <View style={{justifyContent: 'space-between', flexDirection: 'row'}}>
-          <Text
-            style={{
-              color: '#fff',
-              fontSize: 25,
-              paddingLeft: DeviceWidth * 0.08,
-              fontWeight: 'bold',
-            }}>
-            {`Hello ${
-              getUserData[0]?.name ? getUserData[0]?.name.split(' ')[0] : 'User'
-            } ,`}
-          </Text>
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#D0FD3E',
-              width: 40,
-              height: 40,
-              borderRadius: 40 / 2,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: DeviceWidth * 0.07,
-            }}
-            onPress={handleOpenDrawer}
-            activeOpacity={0.4}>
-            <Icons
-              name="format-list-bulleted-square"
-              size={24}
-              color={'#000'}
-            />
-          </TouchableOpacity>
-        </View>
+    <>
+      <View style={styles.Container}>
         <View
           style={{
+            marginTop: 80,
             justifyContent: 'space-between',
-            flexDirection: 'row',
-            alignItems: 'center',
           }}>
-          <Text
+          <View style={{justifyContent: 'space-between', flexDirection: 'row'}}>
+            <Text
+              style={{
+                color: '#fff',
+                fontSize: 25,
+                paddingLeft: DeviceWidth * 0.08,
+                fontWeight: 'bold',
+              }}>
+              {`Hello ${
+                getUserData[0]?.name
+                  ? getUserData[0]?.name.split(' ')[0]
+                  : 'User'
+              } ,`}
+            </Text>
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#D0FD3E',
+                width: 40,
+                height: 40,
+                borderRadius: 40 / 2,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: DeviceWidth * 0.07,
+              }}
+              onPress={handleOpenDrawer}
+              activeOpacity={0.4}>
+              <Icons
+                name="format-list-bulleted-square"
+                size={24}
+                color={'#000'}
+              />
+            </TouchableOpacity>
+          </View>
+          <View
             style={{
-              color: '#D0FD3E',
-              fontSize: 18,
-              paddingLeft: DeviceWidth * 0.08,
-              fontWeight: 'bold',
-              marginVertical: 20,
+              justifyContent: 'space-between',
+              flexDirection: 'row',
+              alignItems: 'center',
             }}>
-            {'Workouts for you'}
-          </Text>
-          {/* <Text
+            <Text
+              style={{
+                color: '#D0FD3E',
+                fontSize: 18,
+                paddingLeft: DeviceWidth * 0.08,
+                fontWeight: 'bold',
+                marginVertical: 20,
+              }}>
+              {'Workouts for you'}
+            </Text>
+            {/* <Text
             style={{
               color: '#D0FD3E',
               fontSize: 14,
@@ -144,56 +201,88 @@ const Home = ({navigation}) => {
             }}>
             See all
           </Text> */}
+          </View>
+          <View
+            style={{
+              width: '95%',
+              borderRadius: 10,
+              alignSelf: 'center',
+              alignItems: 'center',
+              marginBottom: DeviceHeigth * 0.2,
+            }}>
+            <FlatList
+              horizontal
+              data={WrokoutData}
+              renderItem={(item, index) => {
+                // console.log("info--->",item.item);
+                return (
+                  <TouchableOpacity
+                    style={{
+                      width: DeviceWidth * 0.7,
+                      height: DeviceHeigth * 0.2,
+                      margin: 10,
+                      borderRadius: 20,
+                      borderWidth: 2,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      backgroundColor: '#fff',
+                      borderColor: '#D0FD3E',
+                    }}
+                    onPress={() => {
+                      Dispatch(setAdCount(getAdCount + 1));
+                      Dispatch(setDayWiseExerise(item?.item?.days));
+                      console.log('loadded', getAdCount);
+                      if (getAdCount % 3 == 0 && getAdCount != 0) {
+                        showInterstitialAd();
+                        Dispatch(setAdCount(0));
+                      } else {
+                        setTimeout(() => {
+                          navigation.navigate('Days', {item: item?.item?.days});
+                        }, 250);
+                      }
+                    }}>
+                    <ImageBackground
+                      source={{uri: item.item.workout_image_link}}
+                      style={{height: 100, width: 200}}
+                      resizeMode="contain"></ImageBackground>
+                    <Text
+                      style={{color: '#000', fontSize: 18, fontWeight: '600'}}>
+                      {item?.item.workout_title}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
         </View>
-        <View
+        {!isLoaded1 ? <ActivityIndicator color={'#D0FD3E'} size={50} /> : null}
+        <TouchableOpacity
           style={{
-            width: '95%',
-            borderRadius: 10,
-            alignSelf: 'center',
+            backgroundColor: '#D0FD3E',
+            width: DeviceWidth * 0.7,
+            height: DeviceHeigth * 0.05,
+            borderRadius: 20,
+            justifyContent: 'center',
             alignItems: 'center',
-            marginBottom: DeviceHeigth * 0.2,
+            flexDirection: 'row',
+            marginVertical: 30,
+            alignSelf: 'center',
+          }}
+          onPress={() => {
+            showRewardedAd();
           }}>
-          <FlatList
-            horizontal
-            data={WrokoutData}
-            renderItem={(item, index) => {
-              // console.log("info--->",item.item);
-              return (
-                <TouchableOpacity
-                  style={{
-                    width: DeviceWidth * 0.7,
-                    height: DeviceHeigth * 0.2,
-                    margin: 10,
-                    borderRadius: 20,
-                    borderWidth: 2,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: '#fff',
-                    borderColor: '#D0FD3E',
-                  }}
-                  onPress={() => {
-                    Dispatch(setAdCount(getAdCount + 1));
-                    Dispatch(setDayWiseExerise(item?.item?.days));
-                    setTimeout(() => {
-                      navigation.navigate('Days', {item: item?.item?.days});
-                    }, 250);
-                  }}>
-                  <ImageBackground
-                    source={{uri: item.item.workout_image_link}}
-                    style={{height: 100, width: 200}}
-                    resizeMode="contain"></ImageBackground>
-                  <Text
-                    style={{color: '#000', fontSize: 18, fontWeight: '600'}}>
-                    {item?.item.workout_title}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
-        </View>
+          <Text style={{color: '#2C2C2E', fontSize: 16, fontWeight: '700'}}>
+            Rewarded Ads
+          </Text>
+        </TouchableOpacity>
       </View>
-      {!isLoaded ? <ActivityIndicator color={'#D0FD3E'} size={50} /> : null}
-    </View>
+      <BannerAd
+        unitId={adUnitId}
+        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+        onAdLoaded={() => console.log('banner ad loaded')}
+        onAdFailedToLoad={() => console.log('Failed to load banner ad')}
+      />
+    </>
   );
 };
 const styles = StyleSheet.create({
