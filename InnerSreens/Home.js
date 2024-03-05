@@ -20,7 +20,6 @@ import {
   BannerAdSize,
   InterstitialAd,
   TestIds,
-  useInterstitialAd,
   AdEventType,
   RewardedAd,
   RewardedAdEventType,
@@ -33,12 +32,16 @@ import {
   setIsLogin,
 } from '../Redux/Actions';
 import Days from './Days';
-
+import {
+  BannerAds,
+  useInterstitialAds,
+} from '../Components/Adverts/Interstitial';
+import {useRewardedAds} from '../Components/Adverts/Interstitial';
 const Home = ({navigation}) => {
   useEffect(() => {
     getWorkoutData();
     initInterstitial();
-    initRewarded();
+    initReward();
   }, []);
   const [loaded, setLoaded] = useState(false);
   const [adClosed, setAdClosed] = useState(false);
@@ -50,58 +53,10 @@ const Home = ({navigation}) => {
   const [isLoggedIn, setIsLoggedIn] = useState(getIsLogin);
   const [getAdStatus, setAdStatus] = useState(false);
   const [getRewardedAd, setRewardedAd] = useState();
-  const adUnitId = __DEV__
-    ? TestIds.ADAPTIVE_BANNER
-    : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyyyyyy';
-  //interStitial ad
-  const initInterstitial = async () => {
-    const interstitialAd = InterstitialAd.createForAdRequest(
-      TestIds.INTERSTITIAL,
-    );
-    interstitialAd.addAdEventListener(AdEventType.LOADED, () => {
-      setAdStatus(interstitialAd);
-      console.log('ad loaded');
-    });
-    interstitialAd.addAdEventListener(AdEventType.CLOSED, () => {
-      interstitialAd.load();
-    });
-    interstitialAd.addAdEventListener(AdEventType.CLICKED, () => {
-      console.log('ad clicked');
-    });
-    interstitialAd.load();
-  };
 
-  const showInterstitialAd = async () => {
-    if (getAdStatus?._loaded) {
-      getAdStatus.show();
-      //it will navigate to the next screen while showing the ads
-      navigation.navigate('Days');
-    } else {
-      navigation.navigate('Days');
-    }
-  };
-  // rewarded ad
-  const initRewarded = async () => {
-    const rewardedAd = RewardedAd.createForAdRequest(TestIds.REWARDED);
-    rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
-      setRewardedAd(rewardedAd);
-      console.log(rewardedAd);
-    });
-    rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
-      console.log('Earned reward');
-      rewardedAd.load();
-    });
-    rewardedAd.load();
-  };
-  const showRewardedAd = async () => {
-    if (getRewardedAd?._loaded) {
-      getRewardedAd.show();
-      //it will navigate to the next screen while showing the ads
-      navigation.navigate('Days');
-    } else {
-      navigation.navigate('Days');
-    }
-  };
+  //interStitial ad
+  const {initInterstitial, showInterstitialAd} = useInterstitialAds();
+  const {initReward, showRewardedAd} = useRewardedAds();
   const getWorkoutData = async () => {
     try {
       const res = await axios(
@@ -191,16 +146,6 @@ const Home = ({navigation}) => {
               }}>
               {'Workouts for you'}
             </Text>
-            {/* <Text
-            style={{
-              color: '#D0FD3E',
-              fontSize: 14,
-              textDecorationLine: 'underline',
-              paddingRight: DeviceWidth * 0.08,
-              marginVertical: 20,
-            }}>
-            See all
-          </Text> */}
           </View>
           <View
             style={{
@@ -233,7 +178,7 @@ const Home = ({navigation}) => {
                       Dispatch(setDayWiseExerise(item?.item?.days));
                       console.log('loadded', getAdCount);
                       if (getAdCount % 3 == 0 && getAdCount != 0) {
-                        showInterstitialAd();
+                        showInterstitialAd(navigation);
                         Dispatch(setAdCount(0));
                       } else {
                         setTimeout(() => {
@@ -269,19 +214,14 @@ const Home = ({navigation}) => {
             alignSelf: 'center',
           }}
           onPress={() => {
-            showRewardedAd();
+            showRewardedAd(navigation);
           }}>
           <Text style={{color: '#2C2C2E', fontSize: 16, fontWeight: '700'}}>
             Rewarded Ads
           </Text>
         </TouchableOpacity>
       </View>
-      <BannerAd
-        unitId={adUnitId}
-        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        onAdLoaded={() => console.log('banner ad loaded')}
-        onAdFailedToLoad={() => console.log('Failed to load banner ad')}
-      />
+      <BannerAds />
     </>
   );
 };
@@ -318,23 +258,3 @@ const styles = StyleSheet.create({
   },
 });
 export default Home;
-// import React from 'react';
-// import { View, Text, Button } from 'react-native';
-// import { useNavigation } from '@react-navigation/native';
-
-// const Home = () => {
-//   const navigation = useNavigation();
-
-//   const handleOpenDrawer = () => {
-//     navigation.openDrawer();
-//   };
-
-//   return (
-//     <View>
-//       <Text>Welcome to Home</Text>
-//       <Button title="Open Drawer" onPress={handleOpenDrawer} />
-//     </View>
-//   );
-// };
-
-// export default Home;
