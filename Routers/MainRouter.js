@@ -1,7 +1,7 @@
 import {View, Text} from 'react-native';
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createNativeStackNavigator,CardStyleInterpolators} from '@react-navigation/native-stack';
 import Splash from '../Components/Splash';
 import Introduction1 from '../Components/Introduction1';
 import Introductoin2 from '../Components/Introductoin2';
@@ -16,9 +16,15 @@ import {AuthProvider} from '../Components/AuthContex';
 const MainRouter = () => {
   
   const Stack = createNativeStackNavigator();
-  const options = {headerShown: false};
+  const screenOptions = {
+    headerShown: false,
+    gestureDirection: 'horizontal',
+    gesturesEnabled: true,
+    // cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+  
+  };
   return (
-      <Stack.Navigator screenOptions={options}>
+      <Stack.Navigator screenOptions={screenOptions}>
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Introduction1" component={Introduction1} />
         <Stack.Screen name="Introduction2" component={Introductoin2} />

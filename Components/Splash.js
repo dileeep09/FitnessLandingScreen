@@ -9,20 +9,26 @@ import {
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Img} from '../LocalVideo/Video';
+import { useInterstitialAds } from './Adverts/Interstitial';
 const Splash = ({navigation}) => {
   const {getIntroVisible, getIsLogin} = useSelector(state => state);
+  const {initInterstitial, showInterstitialAd}=useInterstitialAds()
   useEffect(() => {
+  //  initInterstitial()
     setTimeout(() => {
       if (getIntroVisible) {
         if (getIsLogin) {
+          // showInterstitialAd()
           navigation.navigate('DrawerNavigation');
         } else {
+          // showInterstitialAd()
           navigation.navigate('Login');
         }
       } else {
+        // showInterstitialAd()
         navigation.navigate('Introduction1');
       }
-    }, 2000);
+    }, 4000);
   }, []);
   return (
     <View style={styles.container}>
